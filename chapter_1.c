@@ -240,7 +240,7 @@ void exercise_1_13() {
         }
 
         for (int j = 0; j < bar; ++j) {
-            putchar('O');
+            putchar('=');
         }
 
         putchar('\n');
