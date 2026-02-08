@@ -1,15 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#define LOWER   0
-#define UPPER 300
-#define STEP   20
-
-#define IN  1
-#define OUT 0
-
-#define MAX_WORD_LENGTH
-
 void exercise_1_1() {
     printf("hello, world\n");
 }
@@ -18,6 +9,10 @@ void exercise_1_2() {
     // compiler error!
     //printf("\c is an invalid character\n")
 }
+
+#define LOWER   0
+#define UPPER 300
+#define STEP   20
 
 void exercise_1_3() {
     float fahr, celsius;
@@ -141,6 +136,9 @@ void exercise_1_10() {
     }
 }
 
+#define IN  1
+#define OUT 0
+
 void exercise_1_11() {
     int c, nl, nw, nc, state;
 
@@ -185,6 +183,9 @@ void exercise_1_12() {
     putchar('\n');
 }
 
+#define MAX_WORD_LENGTH 11
+#define HISTOGRAD_WIDTH 50
+
 void exercise_1_13() {
     int c, state, current_length;
     int lengths[MAX_WORD_LENGTH];
@@ -196,29 +197,56 @@ void exercise_1_13() {
     state = OUT;
     current_length = 0;
     while ((c = getchar()) != EOF) {
-        ++nc;
-        if (c == '\n') {
-            ++nl;
-        } if (c == ' ' || c == '\n' || c == '\t') {
+        if (c == ' ' || c == '\n' || c == '\t') {
             state = OUT;
             if (current_length > 0) {
-                todo
+                int index;
+                if (current_length >= MAX_WORD_LENGTH) {
+                    index = MAX_WORD_LENGTH - 1;
+                } else {
+                    index = current_length;
+                }
+
+                lengths[index] += 1;
+                current_length = 0;
             }
 
-            current_length = 0;
         } else if (state == OUT) {
             state = IN;
-            ++nw;
-            putchar('\n');
         }
-        if (state == IN) {
-            putchar(c);
+        if (state = IN) {
+            current_length += 1;
         }
     }
 
+    int max = 0;
+    for (int i = 0; i < MAX_WORD_LENGTH; ++i) {
+        int length = lengths[i];
+        if (length > max) {
+            max = length;
+        }
+    }
+
+    for (int i = 1; i < MAX_WORD_LENGTH; ++i) {
+        int length = lengths[i];
+        int bar = (int)(HISTOGRAD_WIDTH * (float)length/(float)max);
+
+        if (i == MAX_WORD_LENGTH - 1) {
+            printf("%3d+ ", i);
+        } else if (i == 1 || i % 5 == 0) {
+            printf("%3d  ", i);
+        } else {
+            printf("     ");
+        }
+
+        for (int j = 0; j < bar; ++j) {
+            putchar('O');
+        }
+
+        putchar('\n');
+    }
+
     putchar('\n');
-
-
 }
 
 int main()
