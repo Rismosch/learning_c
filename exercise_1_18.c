@@ -1,49 +1,42 @@
 #include "stdlib.h"
 #include "stdio.h"
 
-#define BUF_LEN 1<<10
-
-void reverse(char in[], char out[]);
+#define MAX_LINE_LENGTH 1<<10
 
 int main() {
     int c;
-    char buf[BUF_LEN + 1];
-    char bufr[BUF_LEN + 1];
-    int len = 0;
+    char line[MAX_LINE_LENGTH + 1];
+    int line_len = 0;
+
+    bool can_print = false;
 
     while ((c = getchar()) != EOF) {
         if (c == '\n') {
-            buf[len] = 0;
-            reverse(buf, bufr);
-            printf("%s\n", bufr);
-            len = 0;
+            if (can_print) {
+                line[line_len] = 0;
+                printf("%s\n", line);
+                can_print = false;
+                line_len = 0;
+            }
+
+            continue;
+        }
+
+        if (line_len < MAX_LINE_LENGTH) {
+            line[line_len] = c;
+            line_len += 1;
         } else {
-            buf[len] = c;
-            len += 1;
+            printf("ERROR: exceeded MAX_LINE_LENGTH %d", MAX_LINE_LENGTH);
+            abort();
+        }
+
+        if (c != ' ' && c != '\t') {
+            can_print = true;
         }
     }
 
-    if (len > 0) {
-        buf[len] = 0;
-        reverse(buf, bufr);
-        printf("%s\n", bufr);
-    }
-
-    return 0;
-}
-
-void reverse(char in[], char out[]) {
-    int i;
-
-    for (i = 0;; ++i) {
-        if (in[i] == 0) {
-            out[i] = 0;
-            i -= 1;
-            break;
-        }
-    }
-
-    for (int j = 0; i >= 0; --i, ++j) {
-        out[j] = in[i];
+    if (line_len > 0 && can_print) {
+        line[line_len] = 0;
+        printf("%s\n", line);
     }
 }

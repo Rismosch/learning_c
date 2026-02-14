@@ -1,42 +1,44 @@
-#include "stdlib.h"
 #include "stdio.h"
 
-#define MAX_LINE_LENGTH 1<<10
+#define THRESHOLD 80
 
 int main() {
-    int c;
-    char line[MAX_LINE_LENGTH + 1];
-    int line_len = 0;
+    int buf[THRESHOLD];
+    bool print = false;
 
-    bool can_print = false;
-
+    int c = 0;
+    int buf_len = 0;
     while ((c = getchar()) != EOF) {
+        if (print) {
+            //putchar(c);
+        }
+
         if (c == '\n') {
-            if (can_print) {
-                line[line_len] = 0;
-                printf("%s\n", line);
-                can_print = false;
-                line_len = 0;
+            buf_len = 0;
+            if (print) {
+                putchar('\n');
+                print = false;
             }
-
-            continue;
-        }
-
-        if (line_len < MAX_LINE_LENGTH) {
-            line[line_len] = c;
-            line_len += 1;
         } else {
-            printf("ERROR: exceeded MAX_LINE_LENGTH %d", MAX_LINE_LENGTH);
-            abort();
-        }
+            //printf("print! \"%c\"\n", c);
 
-        if (c != ' ' && c != '\t') {
-            can_print = true;
+            if (buf_len < THRESHOLD) {
+                buf[buf_len] = c;
+                buf_len += 1;
+            } else if (!print) {
+                for(int i = 0; i < THRESHOLD; ++i) {
+                    //printf("%2d \"%c\"\n", i, buf[i]);
+                    putchar(buf[i]);
+                }
+
+                //printf("------\n");
+                putchar(c);
+                print = true;
+            } else {
+                //printf("print! \"%c\"\n", c);
+                putchar(c);
+            }
         }
     }
 
-    if (line_len > 0 && can_print) {
-        line[line_len] = 0;
-        printf("%s\n", line);
-    }
 }
