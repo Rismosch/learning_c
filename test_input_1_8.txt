@@ -1,5 +1,0 @@
-this is a tab: "	"
-this is a blank: " "
-this is a new line: "
-"
-
