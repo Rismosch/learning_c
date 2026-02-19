@@ -1,0 +1,1 @@
+write a program to check a C program for ruidimentary syntax errors like unbalanced parantheses, brackets and braces. dont forget about quotes, both single and double, escape sequences, and comments. (this program is hard if you do it in full generality)
