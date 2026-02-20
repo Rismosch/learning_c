@@ -25,6 +25,7 @@ int main() {
         current = c;
         column += 1;
 
+        // detect if we are in a string, comment or neither
         if (current == '\\' && previous == '\\') {
             // clear current `\\`, such that it doesn't escape
             // the next character
@@ -68,6 +69,7 @@ int main() {
         bool should_ignore_syntax = current_ignore_syntax && previous_ignore_syntax;
         previous_ignore_syntax = current_ignore_syntax;
 
+        // print visualization
         //if (current == '\n') {
         //    putchar('\n');
         //} else if (should_ignore_syntax){
@@ -87,10 +89,11 @@ int main() {
             continue;
         }
 
+        // we are neither in a string or comment, check if brackets match
         if (current == '(' || current == '{' || current == '[') {
             // push
             if (bracket_stack_len >= STACK_CAPACITY) {
-                printf("ERROR: overflow! too many brackets at %i:%i", line, column);
+                printf("ERROR: overflow! too many brackets at %i:%i\n", line, column);
                 return -1;
             }
 
@@ -99,7 +102,7 @@ int main() {
         } else if (current == ')' || current == '}' || current == ']') {
             // pop
             if (bracket_stack_len <= 0) {
-                printf("ERROR: failed to find matching bracket for %c at %i:%i", current, line, column);
+                printf("ERROR: failed to find matching bracket for %c at %i:%i\n", current, line, column);
                 return -1;
             }
 
@@ -114,22 +117,24 @@ int main() {
                 is_brace;
 
             if (!brackets_match) {
-                printf("ERROR: brackets '%c' and '%c' do not match at %i:%i", bracket, current, line, column);
+                printf("ERROR: brackets '%c' and '%c' do not match at %i:%i\n", bracket, current, line, column);
                 return -1;
             }
         }
-    }
+    } // end while-loop
 
+    // sanity checks for the end
     if (is_inside_multi_comment) {
-        printf("ERROR: multicomment was not closed at %i:%i", line, column);
+        printf("ERROR: multicomment was not closed\n");
         return -1;
     }
 
     if (bracket_stack_len > 0) {
         char bracket = bracket_stack[bracket_stack_len - 1];
-        printf("ERROR: bracket '%c' was not closed at %i:%i", bracket, line, column);
+        printf("ERROR: bracket '%c' was not closed\n", bracket);
         return -1;
     }
     
+    // success!
     return 0;
 }
