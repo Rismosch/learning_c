@@ -18,10 +18,13 @@ typedef enum {
     OPERATOR_SUBTRACTION,       // -
     OPERATOR_DIVISION,          // /
     OPERATOR_MODULUS,           // %
-    OPERATOR_PRINT,             // p
+    OPERATOR_LOG,               // l
     OPERATOR_DUPLICATE,         // d
-    OPERATOR_SWAP,              // s
+    OPERATOR_SWAP,              // w
     OPERATOR_CLEAR,             // c
+    OPERATOR_SIN,               // s
+    OPERATOR_EXP,               // e
+    OPERATOR_POW,               // ^
     OPERATOR_NEWLINE,
     OPERATOR_EOF,
 } Operator;
@@ -82,7 +85,23 @@ int main() {
             }
             break;
 
-        case OPERATOR_PRINT:
+        case OPERATOR_SIN:
+            rhs = pop();
+            push(sin(rhs));
+            break;
+
+        case OPERATOR_EXP:
+            rhs = pop();
+            push(exp(rhs));
+            break;
+
+        case OPERATOR_POW:
+            rhs = pop();
+            lhs = pop();
+            push(pow(lhs, rhs));
+            break;
+
+        case OPERATOR_LOG:
             rhs = peek(0);
             if (!isnan(rhs)) {
                 printf("\t%.8g\n", rhs);
@@ -195,10 +214,13 @@ Operator getop(char s[]) {
         case '-': return    OPERATOR_SUBTRACTION;
         case '/': return    OPERATOR_DIVISION;
         case '%': return    OPERATOR_MODULUS;
-        case 'p': return    OPERATOR_PRINT;
+        case 'l': return    OPERATOR_LOG;
         case 'd': return    OPERATOR_DUPLICATE;
-        case 's': return    OPERATOR_SWAP;
+        case 'w': return    OPERATOR_SWAP;
         case 'c': return    OPERATOR_CLEAR;
+        case 's': return    OPERATOR_SIN;
+        case 'e': return    OPERATOR_EXP;
+        case '^': return    OPERATOR_POW;
         case '\n': return   OPERATOR_NEWLINE;
         case EOF:return     OPERATOR_EOF;
         default: return     OPERATOR_UNKNOWN;
