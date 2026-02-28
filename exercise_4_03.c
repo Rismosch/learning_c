@@ -12,10 +12,11 @@
 typedef enum {
     OPERATOR_UNKNOWN,
     OPERATOR_NUMBER,
-    OPERATOR_ADDITION,
-    OPERATOR_MULTIPLICATION,
-    OPERATOR_SUBTRACTION,
-    OPERATOR_DIVISION,
+    OPERATOR_ADDITION,          // +
+    OPERATOR_MULTIPLICATION,    // *
+    OPERATOR_SUBTRACTION,       // -
+    OPERATOR_DIVISION,          // /
+    OPERATOR_MODULUS,           // %
     OPERATOR_NEWLINE,
     OPERATOR_EOF,
 } Operator;
@@ -27,7 +28,8 @@ double pop(void);
 /* reverse Polish calculator */
 int main() {
     Operator op;
-    double op2;
+    double lhs;
+    double rhs;
     char s[MAXOP];
 
     while((op = getop(s)) != OPERATOR_EOF) {
@@ -35,27 +37,49 @@ int main() {
         case OPERATOR_NUMBER:
             push(atof(s));
             break;
+
         case OPERATOR_ADDITION:
-            push(pop() + pop());
+            rhs = pop();
+            lhs = pop();
+            push(lhs + rhs);
             break;
+
         case OPERATOR_MULTIPLICATION:
-            push(pop() * pop());
+            rhs = pop();
+            lhs = pop();
+            push(lhs * rhs);
             break;
+
         case OPERATOR_SUBTRACTION:
-            op2 = pop();
-            push(pop() - op2);
+            rhs = pop();
+            lhs = pop();
+            push(lhs - rhs);
             break;
+
         case OPERATOR_DIVISION:
-            op2 = pop();
-            if (op2 != 0.0) {
-                push(pop() / op2);
+            rhs = pop();
+            if (rhs != 0.0) {
+                lhs = pop();
+                push(lhs / rhs);
             } else {
                 printf("error: zero divisor\n");
             }
             break;
+
+        case OPERATOR_MODULUS:
+            rhs = pop();
+            if (rhs != 0.0) {
+                lhs = pop();
+                push((int)lhs % (int)rhs);
+            } else {
+                printf("error: non positive divisor\n");
+            }
+            break;
+
         case OPERATOR_NEWLINE:
             printf("\t%.8g\n", pop());
             break;
+
         case OPERATOR_UNKNOWN:
         default:
             printf("error: unknown command %s\n", s);
@@ -116,6 +140,7 @@ Operator getop(char s[]) {
         case '*': return    OPERATOR_MULTIPLICATION;
         case '-': return    OPERATOR_SUBTRACTION;
         case '/': return    OPERATOR_DIVISION;
+        case '%': return    OPERATOR_MODULUS;
         case '\n': return   OPERATOR_NEWLINE;
         case EOF:return     OPERATOR_EOF;
         default: return     OPERATOR_UNKNOWN;
