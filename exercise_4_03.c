@@ -4,6 +4,7 @@
 // | main |
 // +------+
 
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -17,6 +18,10 @@ typedef enum {
     OPERATOR_SUBTRACTION,       // -
     OPERATOR_DIVISION,          // /
     OPERATOR_MODULUS,           // %
+    OPERATOR_PRINT,             // p
+    OPERATOR_DUPLICATE,         // d
+    OPERATOR_SWAP,              // s
+    OPERATOR_CLEAR,             // c
     OPERATOR_NEWLINE,
     OPERATOR_EOF,
 } Operator;
@@ -24,6 +29,7 @@ typedef enum {
 Operator getop(char []);
 void push(double);
 double pop(void);
+double peek(int);
 
 /* reverse Polish calculator */
 int main() {
@@ -76,6 +82,44 @@ int main() {
             }
             break;
 
+        case OPERATOR_PRINT:
+            rhs = peek(0);
+            if (!isnan(rhs)) {
+                printf("\t%.8g\n", rhs);
+            } else {
+                printf("error: stack is empty\n");
+            }
+            break;
+
+        case OPERATOR_DUPLICATE:
+            rhs = peek(0);
+            if (!isnan(rhs)) {
+                push(rhs);
+            } else {
+                printf("error: stack is empty\n");
+            }
+            break;
+
+        case OPERATOR_SWAP:
+            rhs = peek(0);
+            lhs = peek(1);
+            if (isnan(lhs) || isnan(rhs)) {
+                printf("error: not enough elements on the stack\n");
+                break;
+            }
+
+            pop();
+            pop();
+            push(rhs);
+            push(lhs);
+            break;
+
+        case OPERATOR_CLEAR:
+            while (!isnan(peek(0))) {
+                pop();
+            }
+            break;
+
         case OPERATOR_NEWLINE:
             printf("\t%.8g\n", pop());
             break;
@@ -114,7 +158,17 @@ double pop(void) {
         return val[--sp];
     } else {
         printf("error: stack empty\n");
-        return 0.0;
+        return NAN;
+    }
+}
+
+/* peek: return the top value from the stack without popping */
+double peek(int offset) {
+    int i = sp - 1 - offset;
+    if (i < 0 || i >= sp) {
+        return NAN;
+    } else {
+        return val[i];
     }
 }
 
@@ -141,6 +195,10 @@ Operator getop(char s[]) {
         case '-': return    OPERATOR_SUBTRACTION;
         case '/': return    OPERATOR_DIVISION;
         case '%': return    OPERATOR_MODULUS;
+        case 'p': return    OPERATOR_PRINT;
+        case 'd': return    OPERATOR_DUPLICATE;
+        case 's': return    OPERATOR_SWAP;
+        case 'c': return    OPERATOR_CLEAR;
         case '\n': return   OPERATOR_NEWLINE;
         case EOF:return     OPERATOR_EOF;
         default: return     OPERATOR_UNKNOWN;
