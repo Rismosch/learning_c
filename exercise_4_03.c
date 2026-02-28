@@ -1,5 +1,7 @@
 // includes solutions for 4.3 to 4.10
 
+// pass `-lm` to gcc when compiling this
+
 // +------+
 // | main |
 // +------+
@@ -25,6 +27,8 @@ typedef enum {
     OPERATOR_SIN,               // s
     OPERATOR_EXP,               // e
     OPERATOR_POW,               // ^
+    OPERATOR_VARIABLE_DEFINE,   // v<A-Z>
+    OPERATOR_VARIABLE_DEREF,    // <A-Z>
     OPERATOR_NEWLINE,
     OPERATOR_EOF,
 } Operator;
@@ -40,6 +44,8 @@ int main() {
     double lhs;
     double rhs;
     char s[MAXOP];
+    double variables[26] = {0};
+    char v;
 
     while((op = getop(s)) != OPERATOR_EOF) {
         switch(op) {
@@ -85,22 +91,6 @@ int main() {
             }
             break;
 
-        case OPERATOR_SIN:
-            rhs = pop();
-            push(sin(rhs));
-            break;
-
-        case OPERATOR_EXP:
-            rhs = pop();
-            push(exp(rhs));
-            break;
-
-        case OPERATOR_POW:
-            rhs = pop();
-            lhs = pop();
-            push(pow(lhs, rhs));
-            break;
-
         case OPERATOR_LOG:
             rhs = peek(0);
             if (!isnan(rhs)) {
@@ -137,6 +127,34 @@ int main() {
             while (!isnan(peek(0))) {
                 pop();
             }
+            break;
+
+        case OPERATOR_SIN:
+            rhs = pop();
+            push(sin(rhs));
+            break;
+
+        case OPERATOR_EXP:
+            rhs = pop();
+            push(exp(rhs));
+            break;
+
+        case OPERATOR_POW:
+            rhs = pop();
+            lhs = pop();
+            push(pow(lhs, rhs));
+            break;
+
+        case OPERATOR_VARIABLE_DEFINE:
+            rhs = pop();
+            v = s[0] - 'A';
+            variables[v] = rhs;
+            break;
+
+        case OPERATOR_VARIABLE_DEREF:
+            v = s[0] - 'A';
+            rhs = variables[v];
+            push(rhs);
             break;
 
         case OPERATOR_NEWLINE:
@@ -200,6 +218,8 @@ double peek(int offset) {
 int getch(void);
 void ungetch(int);
 
+double variables[26] = {0};
+
 /* getop: get next operator or numeric operand */
 Operator getop(char s[]) {
     int i, c;
@@ -207,6 +227,26 @@ Operator getop(char s[]) {
     while ((s[0] = c = getch()) == ' ' || c == '\t') {}
 
     s[1] = '\0';
+
+    // handle variable
+    if (c >= 'A' && c <= 'Z') {
+        return OPERATOR_VARIABLE_DEREF;
+    }
+
+    if (c == 'v') {
+        c = getch();
+        if (c >= 'A' && c <= 'Z') {
+            s[0] = c;
+            return OPERATOR_VARIABLE_DEFINE;
+        } else {
+            s[0] = '$';
+            s[1] = c;
+            s[2] = 0;
+            return OPERATOR_UNKNOWN;
+        }
+    }
+
+    // handle operators
     if (!isdigit(c) && c != '.') {
         switch(c) {
         case '+': return    OPERATOR_ADDITION;
@@ -221,6 +261,7 @@ Operator getop(char s[]) {
         case 's': return    OPERATOR_SIN;
         case 'e': return    OPERATOR_EXP;
         case '^': return    OPERATOR_POW;
+
         case '\n': return   OPERATOR_NEWLINE;
         case EOF:return     OPERATOR_EOF;
         default: return     OPERATOR_UNKNOWN;
