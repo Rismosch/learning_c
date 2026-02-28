@@ -8,34 +8,44 @@
 #include <stdlib.h>
 
 #define MAXOP 100
-#define NUMBER '0'
 
-int getop(char []);
+typedef enum {
+    OPERATOR_UNKNOWN,
+    OPERATOR_NUMBER,
+    OPERATOR_ADDITION,
+    OPERATOR_MULTIPLICATION,
+    OPERATOR_SUBTRACTION,
+    OPERATOR_DIVISION,
+    OPERATOR_NEWLINE,
+    OPERATOR_EOF,
+} Operator;
+
+Operator getop(char []);
 void push(double);
 double pop(void);
 
 /* reverse Polish calculator */
 int main() {
-    int type;
+    Operator op;
     double op2;
     char s[MAXOP];
 
-    while((type = getop(s)) != EOF) {
-        switch(type) {
-        case NUMBER:
+    while((op = getop(s)) != OPERATOR_EOF) {
+        switch(op) {
+        case OPERATOR_NUMBER:
             push(atof(s));
             break;
-        case '+':
+        case OPERATOR_ADDITION:
             push(pop() + pop());
             break;
-        case '*':
+        case OPERATOR_MULTIPLICATION:
             push(pop() * pop());
             break;
-        case '-':
+        case OPERATOR_SUBTRACTION:
             op2 = pop();
             push(pop() - op2);
             break;
-        case '/':
+        case OPERATOR_DIVISION:
             op2 = pop();
             if (op2 != 0.0) {
                 push(pop() / op2);
@@ -43,9 +53,10 @@ int main() {
                 printf("error: zero divisor\n");
             }
             break;
-        case '\n':
+        case OPERATOR_NEWLINE:
             printf("\t%.8g\n", pop());
             break;
+        case OPERATOR_UNKNOWN:
         default:
             printf("error: unknown command %s\n", s);
             break;
@@ -93,13 +104,22 @@ int getch(void);
 void ungetch(int);
 
 /* getop: get next operator or numeric operand */
-int getop(char s[]) {
+Operator getop(char s[]) {
     int i, c;
 
     while ((s[0] = c = getch()) == ' ' || c == '\t') {}
 
     s[1] = '\0';
     if (!isdigit(c) && c != '.') {
+        switch(c) {
+        case '+': return    OPERATOR_ADDITION;
+        case '*': return    OPERATOR_MULTIPLICATION;
+        case '-': return    OPERATOR_SUBTRACTION;
+        case '/': return    OPERATOR_DIVISION;
+        case '\n': return   OPERATOR_NEWLINE;
+        case EOF:return     OPERATOR_EOF;
+        default: return     OPERATOR_UNKNOWN;
+        }
         return c; // not a number
     }
 
@@ -120,7 +140,7 @@ int getop(char s[]) {
         ungetch(c);
     }
 
-    return NUMBER;
+    return OPERATOR_NUMBER;
 }
 
 #define BUFSIZE 100
