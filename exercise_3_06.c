@@ -4,7 +4,7 @@
 
 #define BUF_LEN 1<<10
 
-/* itoa: convert n to characters in s using base b */
+/* itoa: convert n to characters in s*/
 void itoa(int n, char s[], int min_width);
 
 int main() {

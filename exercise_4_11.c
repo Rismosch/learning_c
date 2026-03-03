@@ -224,7 +224,6 @@ Operator getop(char s[]) {
     static int c;
     static bool use_last_c = false;
 
-    //while ((s[0] = c = getch()) == ' ' || c == '\t') {}
     while (true) {
         if (use_last_c) {
             s[0] = c;
@@ -296,10 +295,7 @@ Operator getop(char s[]) {
     }
 
     s[i] = '\0';
-    use_last_c = true;
-    //if (c != EOF) {
-    //    ungetch(c);
-    //}
+    use_last_c = c != EOF;
 
     return OPERATOR_NUMBER;
 }
