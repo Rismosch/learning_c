@@ -1,11 +1,16 @@
+// uncomment the line below to enable readline2
+//#define USE_READLINE_2
+
 #include <stdio.h>
 #include <string.h>
 
 #define MAXLINES 5000 /* max #lines to be sorted */
+#define LINE_STORAGE_SIZE 10000
 
 char* lineptr[MAXLINES]; /* pointers to text lines */
 
 int readlines(char* lineptr[], int nlines);
+int readlines2(char* lineptr[], int nlines, char linestorage[]);
 void writelines(char* lineptr[], int nlines);
 
 void qsort(char* lineptr[], int left, int right);
@@ -14,7 +19,14 @@ void qsort(char* lineptr[], int left, int right);
 int main() {
     int nlines; // number of input lines read
 
+#ifndef USE_READLINE_2
+    printf("using readline...\n\n");
     if ((nlines = readlines(lineptr, MAXLINES)) >= 0) {
+#else
+    char linestorage[10000];
+    printf("using readline2...\n\n");
+    if ((nlines = readlines2(lineptr, MAXLINES, linestorage)) >= 0) {
+#endif
         qsort(lineptr, 0, nlines - 1);
         writelines(lineptr, nlines);
         return 0;
@@ -42,6 +54,29 @@ int readlines(char* lineptr[], int maxlines) {
         line[len - 1] = 0; // delete newline
         strcpy(p, line);
         lineptr[nlines++] = p;
+    }
+
+    return nlines;
+}
+
+/* readlines2: read input lines */
+int readlines2(char* lineptr[], int maxlines, char linestorage[]) {
+    int len, nlines;
+    //char *p, line[MAXLEN];
+    int i = 0;
+
+    nlines = 0;
+    while ((len = my_getline(&linestorage[i], MAXLEN)) > 0) {
+        if (nlines >= maxlines) {
+            return -1;
+        }
+
+        //line[len - 1] = 0; // delete newline
+        linestorage[i + len - 1] = 0; // delete newline
+        //strcpy(p, line);
+        lineptr[nlines++] = &linestorage[i];
+
+        i += len;
     }
 
     return nlines;
