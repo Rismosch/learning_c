@@ -85,6 +85,24 @@ void swap(char* v[], int i, int j) {
     v[j] = temp;
 }
 
+/* my_getline: get line into s, return length */
+int my_getline(char* s, int lim) {
+    int c, i;
+
+    for (i = 0; i < lim - 1 && (c = getchar()) != EOF && c != '\n'; ++i, ++s) {
+        *s = c;
+    }
+
+    if (c == '\n') {
+        *s = c;
+        s += 1;
+        i += 1;
+    }
+
+    *s = 0;
+    return i;
+}
+
 #define ALLOCSIZE 10000 /* size of available space */
 
 static char allocbuf[ALLOCSIZE]; // storage for alloc
