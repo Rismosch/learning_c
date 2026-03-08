@@ -62,6 +62,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+/* my_getline: read a line into s, return length */
 int my_getline(char s[], int lim) {
     int c, i;
 
