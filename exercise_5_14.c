@@ -12,26 +12,74 @@ void my_qsort(
     void *lineptr[],
     int left,
     int right,
-    int (*comp)(void *, void *)
+    int (*comp)(void *, void *),
+    int flags
 );
 
 int numcmp(const char *, const char *);
 
+int make_flags(
+    bool numeric,
+    bool reverse
+) {
+    int i = 0;
+    i |= (int)numeric;
+    i |= ((int)reverse) << 1;
+    return i;
+}
+
+void decompose_flags(
+    int flags,
+    bool *out_numeric,
+    bool *out_reverse
+) {
+    *out_numeric = flags & 1;
+    *out_reverse = (flags >> 1) & 1;
+}
+
 /* sort imput lines */
 int main(int argc, char *argv[]) {
     int nlines;
-    bool numeric;
+    bool arg_numeric = false;
+    bool arg_reverse = false;
 
-    if (argc > 1 && strcmp(argv[1], "-n") == 0) {
-        numeric = true;
+    // parse cli
+    for (int i = 1; i < argc; ++i) {
+        char *arg = argv[i];
+
+        if (arg[0] != '-') {
+            printf("unknown arg: %s\n", arg);
+            return -1;
+        }
+
+        for (int j = 1; arg[j] != 0; ++j) {
+            char c = arg[j];
+            switch(c) {
+            case 'n':
+                arg_numeric = true;
+                break;
+            case 'r':
+                arg_reverse = true;
+                break;
+            default:
+                printf("unknown flag -%c", c);
+                return -1;
+            }
+        }
     }
 
+    int flags = make_flags(arg_numeric, arg_reverse);
+
+    // sort
     if ((nlines = readlines(lineptr, MAXLINES)) >= 0) {
+        int (*comp)(void *, void *) = (int (*)(void *, void *))(arg_numeric ? numcmp : strcmp);
+
         my_qsort(
             (void **) lineptr,
             0,
             nlines - 1,
-            (int (*)(void *, void *))(numeric ? numcmp : strcmp)
+            comp,
+            flags
         );
         writelines(lineptr, nlines);
         return 0;
@@ -94,7 +142,8 @@ void my_qsort(
     void *v[],
     int left,
     int right,
-    int (*comp)(void *, void *)
+    int (*comp)(void *, void *),
+    int flags
 ) {
     int i, last;
     void swap(void *v[], int, int);
@@ -104,17 +153,31 @@ void my_qsort(
         return;
     }
 
+    bool numeric;
+    bool reverse;
+    decompose_flags(flags, &numeric, &reverse);
+
     swap(v, left, (left + right) / 2);
     last = left;
     for (i = left + 1; i <= right; ++i) {
-        if ((*comp)(v[i], v[left]) < 0) {
+        void *lhs;
+        void *rhs;
+        if (reverse) {
+            lhs = v[i];
+            rhs = v[left];
+        } else {
+            lhs = v[left];
+            rhs = v[i];
+        }
+
+        if ((*comp)(lhs, rhs) < 0) {
             swap(v, ++last, i);
         }
     }
 
     swap(v, left, last);
-    my_qsort(v, left, last - 1, comp);
-    my_qsort(v, last + 1, right, comp);
+    my_qsort(v, left, last - 1, comp, flags);
+    my_qsort(v, last + 1, right, comp, flags);
 }
 
 /* numcmp: compare s2 and s2 numerically */
@@ -139,3 +202,4 @@ void swap(void *v[], int i, int j) {
     v[i] = v[j];
     v[j] = temp;
 }
+
