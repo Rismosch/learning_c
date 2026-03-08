@@ -59,6 +59,8 @@ void detab(char buf[], int len, int spaces) {
         abort();
     }
 
+    buf[required_len] = 0;
+
     // detab
     for (i -= 1, j = required_len - 1; i >= 0; --i) {
         if (buf[i] == '\t') {
