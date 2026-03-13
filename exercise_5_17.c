@@ -5,9 +5,12 @@
 
 #define MAXLINES 5000       /* max #lines to be sorted */
 char *lineptr[MAXLINES];    /* pointers to text lines */
+#define MAXFIELDS 100       /* max #fields to be sorted */
+char *fieldptr[MAXFIELDS];
 
 int readlines(char *lineptr[], int nlines);
-void writelines(char *lineptr[], int nlines);
+int readfields(char *s, char *fieldptr[], int nfields);
+void writestrings(char *sptr[], int nlines, char linefeed);
 
 void my_qsort(
     void *lineptr[],
@@ -27,10 +30,12 @@ bool is_directory(char);
 /* sort imput lines */
 int main(int argc, char *argv[]) {
     int nlines;
+    int nfields;
     bool arg_numeric = false;
     bool arg_reverse = false;
     bool arg_fold = false;
     bool arg_directory = false;
+    bool arg_handle_fields = false;
 
     // parse cli
     for (int i = 1; i < argc; ++i) {
@@ -56,6 +61,9 @@ int main(int argc, char *argv[]) {
             case 'd':
                 arg_directory = true;
                 break;
+            case 'h':
+                arg_handle_fields = true;
+                break;
             default:
                 printf("unknown flag -%c", c);
                 return -1;
@@ -66,18 +74,22 @@ int main(int argc, char *argv[]) {
     ignore_case = arg_fold;
     only_compare_directory_order = arg_directory;
 
-    // sort
+    // read lines
     if ((nlines = readlines(lineptr, MAXLINES)) < 0) {
         printf("input too big for sort\n");
-        return 1;
-    } else {
-        int (*comp)(void *, void *);
-        if (arg_numeric) {
-            comp = (int (*)(void *, void *))numcmp;
-        } else {
-            comp = (int (*)(void *, void *))my_strcmp;
-        }
+        return -1;
+    }
 
+    // determine sort func
+    int (*comp)(void *, void *);
+    if (arg_numeric) {
+        comp = (int (*)(void *, void *))numcmp;
+    } else {
+        comp = (int (*)(void *, void *))my_strcmp;
+    }
+
+    // sort lines
+    if (!arg_handle_fields) {
         my_qsort(
             (void **) lineptr,
             0,
@@ -85,13 +97,64 @@ int main(int argc, char *argv[]) {
             comp,
             arg_reverse
         );
-        writelines(lineptr, nlines);
+        writestrings(lineptr, nlines, '\n');
         return 0;
     }
+
+    // fields
+    for (int i = 0; i < nlines; ++i) {
+        char *line = lineptr[i];
+        char line_len = strlen(line);
+
+        // find fields
+        int j;
+        char prev = 0;
+        for (j = 0; j < line_len; ++j) {
+            char c = line[j];
+
+            if (c == ' ' && prev == ' ') {
+                //line[j] = 0;
+                break;
+            }
+
+            prev = c;
+        }
+
+        if (j >= line_len || j == 0) {
+            // nothing to sort
+            printf("%s\n", lineptr[i]);
+            continue;
+        }
+
+        // print everything up to the fields
+        for (int k = 0; k < j; ++k) {
+            putchar(line[k]);
+        }
+
+        // read fields
+        if ((nfields = readfields(&line[j], fieldptr, MAXFIELDS)) < 0) {
+            printf("input too big for sort\n");
+            return -1;
+        }
+
+        // sort fields
+        my_qsort(
+            (void **) fieldptr,
+            0,
+            nfields - 1,
+            comp,
+            arg_reverse
+        );
+        writestrings(fieldptr, nfields, ',');
+        printf("\n");
+    }
+
+    return 0;
 }
 
 #define MAXLEN 1<<10
 int my_getline(char *, int);
+int my_getfield(char *, char *, int);
 
 /* readlines: read input lines */
 int readlines(char *lineptr[], int maxlines) {
@@ -112,12 +175,36 @@ int readlines(char *lineptr[], int maxlines) {
     return nlines;
 }
 
-/* writelines: write output lines */
-void writelines(char *lineptr[], int nlines) {
+/* readfields: read fields separated by ',' */
+int readfields(char *s, char *fieldptr[], int maxfields) {
+    int len, nfields;
+    char *p, field[MAXLEN];
+
+    nfields = 0;
+    while ((len = my_getfield(s, field, MAXLEN)) > 0) {
+        if (nfields >= maxfields || (p = malloc(len * sizeof(char))) == NULL) {
+            return -1;
+        } else {
+            // delete separator
+            if (field[len - 1] == ',') {
+                field[len - 1] = 0; 
+            }
+
+            strcpy(p, field);
+            fieldptr[nfields++] = p;
+            s += len;
+        }
+    }
+
+    return nfields;
+}
+
+/* writestrings: write output lines */
+void writestrings(char *lineptr[], int nlines, char linefeed) {
     int i;
 
     for (i = 0; i < nlines; ++i) {
-        printf("%s\n", lineptr[i]);
+        printf("%s%c", lineptr[i], linefeed);
     }
 }
 
@@ -135,6 +222,23 @@ int my_getline(char s[], int lim) {
     }
 
     s[i] = 0;
+    return i;
+}
+
+
+int my_getfield(char *input, char output[], int lim) {
+    int c, i;
+
+    for (i = 0; i < lim - 1 && (c = *input++) != 0 && c != ','; ++i) {
+        output[i] = c;
+    }
+
+    if (c == ',') {
+        output[i] = c;
+        ++i;
+    }
+
+    output[i] = 0;
     return i;
 }
 
