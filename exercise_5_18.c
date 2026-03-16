@@ -1,3 +1,7 @@
+// i am not quite sure what exercise 5.18 is asking of me. this
+// program already prints an error and keeps chugging along on a
+// syntax error. invalid syntax does not crash the program.
+
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
