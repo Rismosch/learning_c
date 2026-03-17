@@ -76,7 +76,7 @@ int binsearch(char *word, struct key tab[], int n) {
 
 /* getword */
 int getword(char *word, int lim) {
-    int c, getch(void);
+    int c, prev_c, getch(void);
     void ungetch(int);
     char *w = word;
 
@@ -86,20 +86,123 @@ int getword(char *word, int lim) {
         *w++ = c;
     }
 
-    if (!isalpha(c)) {
-        *w = 0;
-        return c;
-    }
+    if (c == '"') {
+        // string literal
+        *w++ = c;
+        while (true) {
+            prev_c = c;
+            c = getch();
 
-    for (; --lim > 0; w++) {
-        if (!isalnum(*w = getch())) {
-            ungetch(*w);
+            if (c == EOF) {
+                *w = 0;
+                return c;
+            }
+
+            *w++ = c;
+
+            if (c == '"' && prev_c != '\\') {
+                *w = 0;
+                return c;
+            }
+        }
+    } else if (c == '\'') {
+        // char literal
+        *w++ = c;
+
+        while (true) {
+            prev_c = c;
+            c = getch();
+
+            if (c == EOF) {
+                *w = 0;
+                return c;
+            }
+
+            *w++ = c;
+
+            if (c == '\'' && prev_c != '\\') {
+                *w = 0;
+                return c;
+            }
+        }
+    } else if (c == '/') {
+        // comment
+        *w++ = c;
+
+        prev_c = c;
+        c = getch();
+
+        switch (c) {
+        case '/':
+            *w++ = c;
+            while ((c = getch()) != EOF) {
+                *w++ = c;
+                if (c == '\n') {
+                    break;
+                }
+            }
+
+            break;
+
+        case '*':
+            *w++ = c;
+            while (true) {
+                prev_c = c;
+                c = getch();
+
+                if (c == EOF) {
+                    break;
+                }
+
+                *w++ = c;
+
+                if (prev_c == '*' && c == '/') {
+                    break;
+                }
+            }
+
+            break;
+
+        default:
+            *w = 0;
             break;
         }
-    }
 
-    *w = 0;
-    return word[0];
+        return c;
+
+    } else if (c == '#') {
+        // preprocessor directive
+        *w++ = c;
+        while (true) {
+            prev_c = c;
+            c = getch();
+
+            if (c == EOF) {
+                *w = 0;
+                return c;
+            }
+
+            *w++ = c;
+
+            if (c == '\n' && prev_c != '\\') {
+                *w = 0;
+                return c;
+            }
+        }
+    } else if (!isalpha(c) && c != '_') {
+        *w = 0;
+        return c;
+    } else {
+        for (; --lim > 0; w++) {
+            if (!isalnum(*w = getch()) && c != '_') {
+                ungetch(*w);
+                break;
+            }
+        }
+
+        *w = 0;
+        return word[0];
+    }
 }
 
 #define BUFSIZE 100
